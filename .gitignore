@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+*.log
+*.rar
+*.pt
+*.pth
+*.h5
+runs/
+__pycache__/
+node_modules/
