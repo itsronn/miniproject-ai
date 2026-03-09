@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Test — ai screening</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#fafafa; --surface:#fff; --border:#e5e5e5; --text:#111; --muted:#888; --accent:#7c3aed; --accent-light:#f5f3ff; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 40px;height:56px;display:flex;align-items:center;justify-content:space-between;background:rgba(250,250,250,0.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
+  .logo{font-size:0.95rem;font-weight:600;color:var(--text);text-decoration:none;letter-spacing:-0.01em;}
+  .logo span{color:#2563eb;}
+  .back-link{font-size:0.85rem;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color 0.15s;}
+  .back-link:hover{color:var(--text);}
+
+  .page{max-width:600px;margin:0 auto;padding:96px 40px 80px;}
+  .test-eyebrow{font-size:0.72rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  h1{font-size:1.8rem;font-weight:600;letter-spacing:-0.02em;line-height:1.2;margin-bottom:10px;}
+  .test-sub{color:var(--muted);font-size:0.92rem;line-height:1.7;}
+  .divider{height:1px;background:var(--border);margin:32px 0;}
+
+  .instruction{background:#f7f7f7;border:1px solid var(--border);border-radius:8px;padding:16px 18px;font-size:0.85rem;color:var(--muted);line-height:1.7;margin-bottom:24px;}
+  .instruction strong{color:var(--text);display:block;margin-bottom:6px;}
+  .instruction em{color:var(--text);font-style:normal;font-weight:500;font-size:0.95rem;}
+
+  .recorder{padding:24px;background:#f7f7f7;border:1px solid var(--border);border-radius:8px;text-align:center;margin-bottom:20px;}
+  .voice-viz{display:flex;align-items:center;justify-content:center;gap:3px;height:48px;margin-bottom:12px;}
+  .vbar{width:3px;border-radius:3px;background:var(--accent);min-height:3px;opacity:0.4;}
+  .voice-status{font-size:0.8rem;color:var(--muted);margin-bottom:14px;}
+  .rec-btn{padding:8px 22px;border-radius:6px;border:1px solid var(--border);background:white;font-size:0.85rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:var(--text);transition:all 0.15s;}
+  .rec-btn:hover{border-color:#aaa;}
+
+  .progress-wrap{margin:16px 0;display:none;}
+  .progress-label{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:6px;}
+  .progress-track{height:3px;background:#ebebeb;border-radius:3px;overflow:hidden;}
+  .progress-fill{height:100%;background:var(--accent);border-radius:3px;width:0%;}
+
+  .result-panel{display:none;margin-top:20px;}
+  .result-box{text-align:center;padding:28px;background:#f7f7f7;border:1px solid var(--border);border-radius:8px;margin-bottom:20px;}
+  .rb-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:8px;}
+  .rb-val{font-size:2.8rem;font-weight:600;letter-spacing:-0.03em;}
+  .rb-verdict{font-size:0.83rem;margin-top:6px;}
+
+  .btn-run{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:0.9rem;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:background 0.15s;}
+  .btn-run:hover:not(:disabled){background:#6d28d9;}
+  .btn-run:disabled{background:#d1d5db;color:#9ca3af;cursor:not-allowed;}
+  .back-to-home{display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;color:var(--muted);text-decoration:none;margin-top:8px;transition:color 0.15s;}
+  .back-to-home:hover{color:var(--text);}
+
+  @media(max-width:600px){.page{padding:80px 20px 60px;}nav{padding:0 20px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">ai <span>screening</span></a>
+  <a href="index.html" class="back-link">← back to home</a>
+</nav>
+
+<div class="page">
+  <div class="test-header">
+    <div class="test-eyebrow">Test 2 of 3 &nbsp;·&nbsp; Dysarthria Detection</div>
+    <h1>Voice Analysis</h1>
+    <p class="test-sub">Record yourself reading a short passage. The speech model detects articulation irregularities, rhythm disruptions, and phonation patterns linked to dysarthria.</p>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="instruction">
+    <strong>Instructions</strong>
+    Press Record, then read the following sentences aloud clearly and at a natural pace:<br><br>
+    <em>"She sells sea shells by the seashore. Peter Piper picked a peck of pickled peppers."</em><br><br>
+    Recording will stop automatically after 8 seconds, or press Stop when done.
+  </div>
+
+  <div class="recorder">
+    <div class="voice-viz" id="voice-viz">
+      <div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div><div class="vbar"></div>
+    </div>
+    <div class="voice-status" id="voice-status">Press record to start</div>
+    <button class="rec-btn" id="vrec-btn" onclick="toggleRec()">● Record</button>
+  </div>
+
+  <div class="progress-wrap" id="voice-prog">
+    <div class="progress-label"><span>Analyzing speech patterns...</span><span id="voice-pct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="voice-bar"></div></div>
+  </div>
+
+  <div class="result-panel" id="voice-res">
+    <div class="result-box">
+      <div class="rb-label">Dysarthria risk score</div>
+      <div class="rb-val" id="voice-score" style="color:#7c3aed">—</div>
+      <div class="rb-verdict" id="voice-verd"></div>
+    </div>
+    <a href="index.html#tests" class="back-to-home">← back to all tests</a>
+  </div>
+
+  <button class="btn-run" id="voice-btn" onclick="runVoice()" disabled>Record audio to analyze</button>
+</div>
+
+<script>
+  let recOn = false, recTO = null, recOk = false;
+  function toggleRec() {
+    const b = document.getElementById('vrec-btn'), s = document.getElementById('voice-status');
+    if (!recOn) {
+      recOn = true; b.textContent = '■ Stop'; b.style.borderColor = '#dc2626'; b.style.color = '#dc2626';
+      s.textContent = 'Recording...'; animBars(true);
+      recTO = setTimeout(() => { if (recOn) toggleRec(); }, 8000);
+    } else {
+      recOn = false; clearTimeout(recTO);
+      b.textContent = '● Record'; b.style.borderColor = 'var(--border)'; b.style.color = 'var(--text)';
+      s.textContent = 'Recording saved ✓'; animBars(false); recOk = true;
+      const rb = document.getElementById('voice-btn'); rb.disabled = false; rb.textContent = 'Analyze voice →';
+    }
+  }
+  function animBars(on) {
+    const bars = document.querySelectorAll('.vbar');
+    if (on) { const r = () => { if (!recOn) return; bars.forEach(b => { b.style.height = (Math.random() * 36 + 4) + 'px'; b.style.opacity = (Math.random() * 0.5 + 0.5).toString(); }); requestAnimationFrame(r); }; r(); }
+    else bars.forEach(b => { b.style.height = '3px'; b.style.opacity = '0.4'; });
+  }
+  function runVoice() {
+    if (!recOk) return;
+    const b = document.getElementById('voice-btn'); b.disabled = true; b.textContent = 'Analyzing...';
+    document.getElementById('voice-prog').style.display = 'block';
+    prog('voice-bar', 'voice-pct', 4000, () => { showScore('voice', rnd(40, 80), '#7c3aed'); b.textContent = 'Done'; });
+  }
+  function rnd(a, b) { return Math.floor(Math.random() * (b - a)) + a; }
+  function prog(barId, pctId, dur, cb) {
+    const bar = document.getElementById(barId), pct = document.getElementById(pctId); let st = null;
+    function step(ts) { if (!st) st = ts; const p = Math.min((ts - st) / dur, 1), v = Math.round(p * 100); bar.style.width = v + '%'; pct.textContent = v + '%'; if (p < 1) requestAnimationFrame(step); else cb(); }
+    requestAnimationFrame(step);
+  }
+  function verdict(s) { if (s < 40) return { t: 'Low risk — no significant indicators', c: '#16a34a' }; if (s < 65) return { t: 'Moderate risk — some indicators present', c: '#d97706' }; return { t: 'Elevated risk — clinical follow-up advised', c: '#dc2626' }; }
+  function showScore(prefix, s, color) {
+    document.getElementById(prefix + '-res').style.display = 'block';
+    document.getElementById(prefix + '-prog').style.display = 'none';
+    const sv = document.getElementById(prefix + '-score'); sv.textContent = s; sv.style.color = color;
+    const v = verdict(s); const vd = document.getElementById(prefix + '-verd'); vd.textContent = v.t; vd.style.color = v.c;
+  }
+</script>
+</body>
+</html>
