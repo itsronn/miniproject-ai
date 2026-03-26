@@ -1,9 +1,9 @@
-# NeuroScan
+# LeaDis
 
 Multimodal Dyslexia & Dysarthria Screening Dashboard — React + FastAPI.
 
 ```
-neuroscan/
+LeaDis/
 ├── frontend/                      React 18 · TypeScript · Tailwind CSS
 └── backend/
     ├── app/                       FastAPI application
@@ -49,12 +49,12 @@ Place all model files in `backend/models/`:
 | `dyslexia_ensemble.joblib` | Eye tracking | VotingClassifier (RF+SVM+XGBoost) |
 | `dyslexia_rfecv.joblib` | Eye tracking | RFECV feature selector |
 | `dyslexia_feature_meta.json` | Eye tracking | Feature names + col means |
-| `handwriting_yolo.pt` | Handwriting | YOLOv8 letter classifier |
+| `best_mobilenet.pth` | Handwriting | MobileNetV3 letter classifier |
 
 Also place `face_landmarker.task` in `backend/`:
 
 ```powershell
-# Windows PowerShell (if face_landmasker.task is not present with the backend folder)
+# Windows PowerShell (if face_landmarker.task is not present with the backend folder)
 Invoke-WebRequest -Uri "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task" -OutFile "backend/face_landmarker.task"
 ```
 
@@ -114,5 +114,5 @@ DYSLEXIA_RFECV_PATH=models/dyslexia_rfecv.joblib
 DYSLEXIA_META_PATH=models/dyslexia_feature_meta.json
 DYSLEXIA_THRESHOLD=0.5
 
-HANDWRITING_MODEL_PATH=models/handwriting_yolo.pt
+HANDWRITING_MODEL_PATH=models/best_mobilenet.pth
 ```
