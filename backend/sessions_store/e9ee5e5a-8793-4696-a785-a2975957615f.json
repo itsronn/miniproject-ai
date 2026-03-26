@@ -1,0 +1,16 @@
+{
+  "id": "e9ee5e5a-8793-4696-a785-a2975957615f",
+  "tool": "dysarthria",
+  "timestamp": "2026-03-26T14:49:31.075543",
+  "risk": 0.0,
+  "label": "non_dysarthria",
+  "result": {
+    "risk": 0.0,
+    "label": "non_dysarthria",
+    "confidence": 1.0,
+    "n_chunks": 1,
+    "chunk_risks": [
+      0.0
+    ]
+  }
+}

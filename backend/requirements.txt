@@ -25,4 +25,5 @@ soundfile>=0.12.1
 # torch and torchaudio already pulled in above
 
 # Speech desktop runner
-# pip install customtkinter sounddevice soundfile
+customtkinter>=5.2.0
+sounddevice>=0.4.6

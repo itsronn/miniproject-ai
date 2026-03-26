@@ -1,0 +1,43 @@
+{
+  "id": "486221fc-1244-433f-9e97-842b692e80bb",
+  "tool": "handwriting",
+  "timestamp": "2026-03-26T14:48:55.776214",
+  "risk": 0.2,
+  "label": "no_reversal",
+  "result": {
+    "risk": 0.2,
+    "counts": {
+      "Corrected": 0,
+      "Normal": 4,
+      "Reversal": 1
+    },
+    "total": 5,
+    "letter_detail": [
+      {
+        "label": "Reversal",
+        "orientation": "Reversal",
+        "conf": 0.993
+      },
+      {
+        "label": "Normal",
+        "orientation": "Normal",
+        "conf": 0.998
+      },
+      {
+        "label": "Normal",
+        "orientation": "Normal",
+        "conf": 0.999
+      },
+      {
+        "label": "Normal",
+        "orientation": "Normal",
+        "conf": 0.996
+      },
+      {
+        "label": "Normal",
+        "orientation": "Normal",
+        "conf": 0.997
+      }
+    ]
+  }
+}
