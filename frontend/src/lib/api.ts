@@ -46,7 +46,8 @@ export const apiEndpoints = {
 
   // Handwriting
   handwriting: {
-    score:    (formData: FormData) => api.post('/handwriting/score', formData),
+    score:        (formData: FormData) => api.post('/handwriting/score', formData),
+    score_canvas: (formData: FormData) => api.post('/handwriting/score_canvas', formData),
     evaluate: (formData: FormData) => api.post('/handwriting/evaluate', formData),
     history:  ()                   => api.get('/handwriting/history'),
   },

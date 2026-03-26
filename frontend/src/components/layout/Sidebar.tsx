@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, PlayCircle, Activity, BarChart3, Settings } from 'lucide-react';
+import { Home, PlayCircle, Activity, Settings } from 'lucide-react';
 
 const NAV = [
-  { to: '/',         icon: Home,        label: 'Home',     end: true },
-  { to: '/screening',icon: PlayCircle,  label: 'Screening'           },
-  { to: '/sessions', icon: Activity,    label: 'Sessions'            },
+  { to: '/',          icon: Home,        label: 'Home',      end: true },
+  { to: '/screening', icon: PlayCircle,  label: 'Screening'            },
+  { to: '/sessions',  icon: Activity,    label: 'Sessions'             },
 ];
 const BOTTOM = [
   { to: '/settings', icon: Settings, label: 'Settings' },

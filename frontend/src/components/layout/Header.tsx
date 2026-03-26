@@ -7,7 +7,6 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   '/':           { title: 'Home',       subtitle: 'Dyslexia & Dysarthria Screening'    },
   '/screening':  { title: 'Screening',  subtitle: 'Complete the three-module assessment' },
   '/sessions':   { title: 'Sessions',   subtitle: 'All past screening results'           },
-  '/evaluate':   { title: 'Evaluate',   subtitle: 'Dataset-level model evaluation'       },
   '/settings':   { title: 'Settings',   subtitle: 'Configuration & model paths'          },
 };
 

@@ -1,11 +1,8 @@
 """
-Handwriting inference service.
-Uses the real scoring pipeline from handwriting_model.py:
-  PIL → BGR → polarity normalise → per-letter segmentation → YOLO grid → score
+Handwriting inference service — MobileNetV3.
 """
 from __future__ import annotations
-import logging, io, types
-import numpy as np
+import io, logging, types
 from pathlib import Path
 from PIL import Image
 
@@ -15,96 +12,99 @@ from app.models.schemas import HandwritingResult, LetterDetail
 log = logging.getLogger(__name__)
 
 
-def _make_args(conf=0.10, imgsz=768, save_vis=False,
-               no_crop=True, normalize_polarity=True, image="__uploaded__"):
-    """Build a minimal args namespace matching what run_scoring_pipeline expects."""
+def _make_args_upload():
+    """Args for a real uploaded photo/scan — real-image mode."""
     a = types.SimpleNamespace()
-    a.conf               = conf
-    a.imgsz              = imgsz
-    a.save_vis           = save_vis
-    a.no_crop            = no_crop
-    a.normalize_polarity = normalize_polarity
-    a.image              = image   # non-None → real-image mode (not clean canvas)
+    a.save_vis           = False
+    a.no_crop            = True
+    a.normalize_polarity = True
+    a.image              = "__uploaded__"   # non-None → clean_canvas=False → adaptive threshold
+    a.out_dir            = "outputs_handwriting"
+    return a
+
+
+def _make_args_canvas():
+    """Args for browser canvas PNG — clean canvas mode."""
+    a = types.SimpleNamespace()
+    a.save_vis           = False
+    a.no_crop            = True
+    a.normalize_polarity = True
+    a.image              = None              # None → clean_canvas=True → simple threshold
     a.out_dir            = "outputs_handwriting"
     return a
 
 
 class HandwritingService:
     def __init__(self):
-        self.model = None
-        self.ready = False
+        self.model  = None
+        self.device = None
+        self.ready  = False
         self._load()
 
     def _load(self):
         path: Path = settings.handwriting_model_path
         if not path.exists():
-            log.warning("Handwriting model not found at %s. Stub mode.", path)
+            log.warning("Handwriting model not found at %s — stub mode.", path)
             return
         try:
-            from ultralytics import YOLO
-            self.model = YOLO(str(path))
-            self.ready = True
-            log.info("YOLO handwriting model loaded from %s", path)
+            import torch
+            from app.services.handwriting_model import load_model
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.model  = load_model(str(path), self.device)
+            self.ready  = True
+            log.info("MobileNetV3 loaded from %s on %s", path, self.device)
+        except ImportError:
+            log.error("torch/torchvision not installed. Run: pip install torch torchvision")
         except Exception as e:
             log.error("Failed to load handwriting model: %s", e)
 
+    # ── Uploaded photo / scan ─────────────────────────────────────────────────
     async def score(self, file_bytes: bytes, filename: str) -> HandwritingResult:
-        if self.ready and self.model is not None:
-            return self._run_pipeline(file_bytes)
-        return self._stub()
+        if not self.ready or self.model is None:
+            log.warning("Handwriting in stub mode — model not loaded.")
+            return self._stub()
+        return self._run(file_bytes, _make_args_upload())
 
-    def _run_pipeline(self, file_bytes: bytes) -> HandwritingResult:
+    # ── Browser canvas PNG ────────────────────────────────────────────────────
+    async def score_canvas(self, file_bytes: bytes) -> HandwritingResult:
+        if not self.ready or self.model is None:
+            log.warning("Handwriting in stub mode — model not loaded.")
+            return self._stub()
+        return self._run(file_bytes, _make_args_canvas())
+
+    # ── Shared pipeline ───────────────────────────────────────────────────────
+    def _run(self, file_bytes: bytes, args) -> HandwritingResult:
         from app.services.handwriting_model import run_scoring_pipeline
 
-        # Decode image bytes → PIL (same as app.py --image path does)
         pil_img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+        result, _ = run_scoring_pipeline(pil_img, self.model, self.device, args, Path(args.out_dir))
 
-        args    = _make_args()
-        out_dir = Path(args.out_dir)
-
-        result, _ = run_scoring_pipeline(pil_img, self.model, args, out_dir)
-
-        # Map model.py output → our schema
-        # model.py classes: Normal=0, Reversal=1, Corrected=2
-        counts_raw = result.get("counts", {})
-        total      = result.get("total", 0)
-        risk       = float(result.get("risk", 0.0))
-
-        # Convert to our reversal-focused schema
-        counts = {
-            "Normal":    counts_raw.get("Normal",    0),
-            "Reversal":  counts_raw.get("Reversal",  0),
-            "Corrected": counts_raw.get("Corrected", 0),
-        }
-
+        counts  = dict(result.get("counts", {}))
+        total   = result.get("total", 0)
+        risk    = float(result.get("risk", 0.0))
         details = [
             LetterDetail(
-                label=d.get("label", "?"),
-                orientation=d.get("orientation", "Normal"),
-                conf=round(float(d.get("conf", 0.0)), 3),
+                label       = d.get("label", "?"),
+                orientation = d.get("label", "Normal"),
+                conf        = round(float(d.get("conf", 0.0)), 3),
             )
             for d in result.get("letter_detail", [])
         ]
+        log.info("Handwriting result: risk=%.3f  total=%d  counts=%s", risk, total, counts)
+        return HandwritingResult(risk=round(risk, 4), counts=counts, total=total, letter_detail=details)
 
-        return HandwritingResult(
-            risk=round(risk, 4),
-            counts=counts,
-            total=total,
-            letter_detail=details,
-        )
-
+    # ── Stub — model not loaded ───────────────────────────────────────────────
     def _stub(self) -> HandwritingResult:
-        log.debug("Stub mode: returning dummy handwriting prediction.")
-        counts = {"Normal": 4, "Reversal": 1, "Corrected": 0}
+        """Returns a neutral result when model isn't available."""
         return HandwritingResult(
-            risk=0.2,
-            counts=counts,
-            total=5,
+            risk=0.0,
+            counts={"Normal": 0, "Reversal": 0, "Corrected": 0},
+            total=0,
             letter_detail=[],
         )
 
     async def evaluate(self, file_bytes: bytes, filename: str):
-        raise NotImplementedError("Handwriting evaluation not yet wired.")
+        raise NotImplementedError("Evaluation not wired.")
 
 
 handwriting_service = HandwritingService()

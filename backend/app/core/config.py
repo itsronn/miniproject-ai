@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     dyslexia_threshold:   float = 0.5
 
     # Handwriting
-    handwriting_model_path: Path = Path("models/handwriting_yolo.pt")
+    handwriting_model_path: Path = Path("models/best_mobilenet.pth")
 
     # ── Audio ─────────────────────────────────────────────────────────────────
     sample_rate:   int   = 16000
